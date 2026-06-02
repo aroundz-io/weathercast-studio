@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  color: #e2e8f0;
+  background:
+    radial-gradient(1100px 600px at 12% -8%, rgba(56, 189, 248, 0.16), transparent 60%),
+    radial-gradient(1000px 700px at 105% 5%, rgba(168, 85, 247, 0.14), transparent 55%),
+    linear-gradient(180deg, #0a0f1e 0%, #0a0f1e 40%, #0c1326 100%);
+  background-attachment: fixed;
+}
+
+/* 스크롤바 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* range 슬라이더 */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.25);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #38bdf8;
+  cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+::selection {
+  background: rgba(56, 189, 248, 0.3);
+}
+
+textarea {
+  font-family: inherit;
+}
