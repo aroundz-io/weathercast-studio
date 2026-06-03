@@ -25,7 +25,7 @@ export interface WeatherTag {
   icon: string;
 }
 
-export type WeatherSource = "open-meteo" | "mock";
+export type WeatherSource = "kweather" | "open-meteo" | "mock";
 
 export interface HourlyPoint {
   time: string; // 로컬 ISO "2026-06-03T15:00"

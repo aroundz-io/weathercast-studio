@@ -67,7 +67,7 @@ lib/
 
 | 라우트 | 실제 서비스 | 환경변수 | 비고 |
 | --- | --- | --- | --- |
-| `/api/weather` | ✅ **Open-Meteo (실데이터)** | 불필요 | 실시간 시간별 예보·분석 동작 중. 케이웨더로 바꾸려면 `lib/weather/openMeteo.ts`만 수정 |
+| `/api/weather` | ✅ **Open-Meteo (실데이터)** · 케이웨더(선택) | 케이웨더만 키 | 기본 Open-Meteo 실시간. `KWEATHER_API_KEY`+`KWEATHER_FORECAST_PATH` 설정 시 `lib/weather/kweather.ts`로 케이웨더 우선 사용(실패 시 Open-Meteo 폴백) |
 | `/api/lyrics` | Google Gemini | `GEMINI_API_KEY` | 가장 안정적 |
 | `/api/songs` | Suno | `SUNO_API_KEY` | ⚠️ 공식 API 접근 제한적 — 비동기 job 폴링 구조 필요 |
 | `/api/video` | OmniHuman/Seedance | `VIDEO_API_KEY` | ⚠️ ByteDance 계열, 접근 난이도 |
