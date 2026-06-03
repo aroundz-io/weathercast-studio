@@ -3,9 +3,10 @@
 케이웨더 데이터 기반 **AI 날씨송·영상·썸네일 반자동 생성** 대시보드.
 한 화면에서 `데이터 → 텍스트 → 미디어 → 패키징` 4단계 파이프라인을 흐름대로 진행합니다.
 
-> ⚠️ **현재는 MVP 프로토타입입니다.** 외부 API(케이웨더·Gemini·Suno·OmniHuman/Seedance)는
-> 모두 **목업**(`app/api/*`)으로, 실제 호출 대신 그럴듯한 더미 데이터를 지연과 함께 반환합니다.
-> UI/UX 흐름과 데이터 모델을 먼저 확정하고, 실제 키가 준비되면 라우트 내부만 교체하는 구조입니다.
+> **데이터 현황:** 날씨는 이제 **실데이터**입니다 — `app/api/weather`가 **Open-Meteo**(무료·키 불필요)로
+> 실시간 **시간별 예보**를 가져와 분석합니다. (케이웨더 키가 생기면 `lib/weather/openMeteo.ts`만 교체)
+> Gemini·Suno·OmniHuman/Seedance는 아직 **목업**(`app/api/*`)이며, 우상단 뱃지와 시간별 카드 라벨로
+> 실데이터/목업을 구분합니다.
 
 ## 실행
 
@@ -66,13 +67,14 @@ lib/
 
 | 라우트 | 실제 서비스 | 환경변수 | 비고 |
 | --- | --- | --- | --- |
-| `/api/weather` | 케이웨더 B2B | `KWEATHER_API_KEY` | 계약·키 필요 |
+| `/api/weather` | ✅ **Open-Meteo (실데이터)** | 불필요 | 실시간 시간별 예보·분석 동작 중. 케이웨더로 바꾸려면 `lib/weather/openMeteo.ts`만 수정 |
 | `/api/lyrics` | Google Gemini | `GEMINI_API_KEY` | 가장 안정적 |
 | `/api/songs` | Suno | `SUNO_API_KEY` | ⚠️ 공식 API 접근 제한적 — 비동기 job 폴링 구조 필요 |
 | `/api/video` | OmniHuman/Seedance | `VIDEO_API_KEY` | ⚠️ ByteDance 계열, 접근 난이도 |
 
 ## 지금도 동작하는 "실제" 기능
 
+- ✅ **실시간 시간별 날씨 예보 + 분석** (Open-Meteo, 키 불필요) — 기온·강수확률·하늘상태를 시간대별로, 자동 예보 요약 생성
 - ✅ 썸네일 **PNG 다운로드** (Canvas 렌더링, 16:9 / 9:16, 4색 톤)
 - ✅ 대본 **.txt 다운로드** (가사/나레이션/프롬프트)
 - ✅ 후보곡 미리듣기 톤 + 파형/플레이헤드, 영상 30초 분절 진행률 시뮬레이션

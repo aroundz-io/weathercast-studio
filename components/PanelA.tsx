@@ -4,6 +4,7 @@ import { ForecastType, Mood, Duration, WeatherData } from "@/lib/types";
 import { FORECAST_LABELS, REGIONS } from "@/lib/mock/weather";
 import { moodLabel } from "@/lib/mock/lyrics";
 import { PERSONAS } from "@/lib/personas";
+import { HourlyForecast } from "@/components/HourlyForecast";
 import { Button, Card, PanelHeader, StatusBadge, Field, inputClass, cn, Status } from "@/components/ui";
 
 interface ConceptInputs {
@@ -121,6 +122,8 @@ export function PanelA({
             <p className="mt-3 text-xs leading-relaxed text-slate-400">{weather.summary}</p>
           </div>
         )}
+
+        {weather && <HourlyForecast weather={weather} />}
 
         <div className="h-px bg-white/10" />
 

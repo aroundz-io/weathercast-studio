@@ -72,9 +72,16 @@ export function TopBar({
 
         {/* 상태 */}
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-300 ring-1 ring-rose-400/30">
-            MOCK MODE
-          </span>
+          {weather?.source === "open-meteo" ? (
+            <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
+              ● 날씨 실데이터
+            </span>
+          ) : (
+            <span className="rounded-full bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-300 ring-1 ring-rose-400/30">
+              MOCK
+            </span>
+          )}
+          <span className="hidden text-[11px] text-slate-500 sm:inline">음원·영상 목업</span>
         </div>
       </div>
 

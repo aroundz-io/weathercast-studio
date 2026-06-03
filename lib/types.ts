@@ -25,6 +25,26 @@ export interface WeatherTag {
   icon: string;
 }
 
+export type WeatherSource = "open-meteo" | "mock";
+
+export interface HourlyPoint {
+  time: string; // 로컬 ISO "2026-06-03T15:00"
+  hourLabel: string; // "15시"
+  temp: number;
+  condition: string;
+  conditionCode: ConditionCode;
+  emoji: string;
+  precipProb: number; // 강수확률 %
+  humidity: number; // %
+  windSpeed: number; // m/s
+  isNow: boolean;
+}
+
+export interface ForecastAnalysis {
+  headline: string; // 한 줄 핵심 예보
+  bullets: string[]; // 시간대별 분석 포인트
+}
+
 export interface WeatherData {
   region: string;
   date: string;
@@ -42,6 +62,10 @@ export interface WeatherData {
   uvIndex: string;
   summary: string;
   tags: WeatherTag[];
+  hourly: HourlyPoint[]; // 시간별 예보
+  analysis: ForecastAnalysis; // 시간열 분석 → 예보
+  source: WeatherSource; // 실데이터 여부
+  observedAt: string; // 기준 시각 ISO
 }
 
 export interface LyricsResult {
