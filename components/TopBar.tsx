@@ -72,9 +72,9 @@ export function TopBar({
 
         {/* 상태 */}
         <div className="flex items-center gap-2">
-          {weather?.source === "open-meteo" ? (
+          {weather && weather.source !== "mock" ? (
             <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
-              ● 날씨 실데이터
+              ● 날씨 실데이터 · {weather.source === "kweather" ? "케이웨더" : "Open-Meteo"}
             </span>
           ) : (
             <span className="rounded-full bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-300 ring-1 ring-rose-400/30">

@@ -19,12 +19,16 @@ export function HourlyForecast({ weather }: { weather: WeatherData }) {
         <span
           className={cn(
             "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1",
-            source === "open-meteo"
+            source !== "mock"
               ? "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30"
               : "bg-rose-500/15 text-rose-300 ring-rose-400/30"
           )}
         >
-          {source === "open-meteo" ? "실데이터 · Open-Meteo" : "목업 데이터"}
+          {source === "kweather"
+            ? "실데이터 · 케이웨더"
+            : source === "open-meteo"
+              ? "실데이터 · Open-Meteo"
+              : "목업 데이터"}
         </span>
       </div>
 
@@ -78,7 +82,11 @@ export function HourlyForecast({ weather }: { weather: WeatherData }) {
       {weather.observedAt && (
         <p className="mt-2 text-[10px] text-slate-500">
           기준 {weather.observedAt.replace("T", " ")} · 지역 {weather.region}
-          {source === "open-meteo" ? " · Open-Meteo 실시간" : " · 목업"}
+          {source === "kweather"
+            ? " · 케이웨더 실시간"
+            : source === "open-meteo"
+              ? " · Open-Meteo 실시간"
+              : " · 목업"}
         </p>
       )}
     </div>
