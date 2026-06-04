@@ -84,10 +84,6 @@ function wTextToCode(t: unknown): ConditionCode {
   return "cloudy";
 }
 
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 export async function fetchKWeather(
   date: string,
   forecastType: ForecastType,
@@ -110,13 +106,28 @@ export async function fetchKWeather(
   const wText = flat(hd.wText);
   if (!temp || !temp.length) throw new Error("KWeather temp 배열 없음");
 
-  // 평탄 배열은 오늘 00시부터의 시간 인덱스 → 대상 날짜 오프셋(0~2일)
-  const now = new Date();
-  const todayStr = ymd(now);
-  let offset = date ? Math.round((new Date(date + "T00:00:00").getTime() - new Date(todayStr + "T00:00:00").getTime()) / 86400000) : 0;
-  if (!(offset >= 0 && offset <= 2)) offset = 0;
-  const targetDate = offset === 0 ? todayStr : ymd(new Date(now.getTime() + offset * 86400000));
-  const curHour = now.getHours();
+  // ── KST(UTC+9) 기준 — Vercel 서버는 UTC라 반드시 보정 ──
+  // 평탄 배열은 'KST 오늘 00시'부터의 시간 인덱스. kw-3d1h2는 오늘~+2일(3일) 제공.
+  const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const todayStr = `${nowKst.getUTCFullYear()}-${pad(nowKst.getUTCMonth() + 1)}-${pad(nowKst.getUTCDate())}`;
+  const curHour = nowKst.getUTCHours();
+
+  // 요청 날짜의 KST 오늘 대비 오프셋. 범위(0~2일) 밖이면 throw → Open-Meteo(최대 7일) 폴백.
+  let offset = 0;
+  let targetDate = todayStr;
+  if (date) {
+    const reqMs = Date.parse(`${date}T00:00:00Z`);
+    const todayMs = Date.parse(`${todayStr}T00:00:00Z`);
+    if (Number.isFinite(reqMs)) {
+      const off = Math.round((reqMs - todayMs) / 86400000);
+      if (off < 0 || off > 2) {
+        throw new Error(`케이웨더 시간별 예보 범위(오늘~+2일) 밖: ${date} (offset ${off}일)`);
+      }
+      offset = off;
+      targetDate = date;
+    }
+  }
 
   const hourly: HourlyPoint[] = [];
   for (let h = 0; h < 24; h++) {

@@ -81,7 +81,7 @@ export function HourlyForecast({ weather }: { weather: WeatherData }) {
       </div>
       {weather.observedAt && (
         <p className="mt-2 text-[10px] text-slate-500">
-          기준 {weather.observedAt.replace("T", " ")} · 지역 {weather.region}
+          조회 {weather.observedAt.replace("T", " ")} KST · 지역 {weather.region}
           {source === "kweather"
             ? " · 케이웨더 실시간"
             : source === "open-meteo"
