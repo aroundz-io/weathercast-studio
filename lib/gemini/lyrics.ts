@@ -1,4 +1,4 @@
-import { LyricsResult, WeatherData, Mood, Duration } from "@/lib/types";
+import { LyricsResult, WeatherData, Mood, Duration, Persona } from "@/lib/types";
 import { moodLabel } from "@/lib/mock/lyrics";
 
 // ── Google Gemini 가사·프롬프트 실연동 ──────────────────────────────────────
@@ -34,7 +34,7 @@ function durationGuide(d: Duration): string {
   return "60초 — [Intro] + [Verse] + [Chorus] + [Outro]";
 }
 
-function buildPrompt(weather: WeatherData, mood: Mood, duration: Duration): string {
+function buildPrompt(weather: WeatherData, mood: Mood, duration: Duration, persona?: Persona): string {
   const tags = weather.tags.map((t) => t.label).join(", ");
   const bullets = weather.analysis.bullets.map((b) => `  · ${b}`).join("\n");
   return `당신은 K-pop 날씨송 작사가이자 방송 콘텐츠 기획자입니다. 아래 "실제 기상 데이터"를 바탕으로 한국어 날씨송과 부가 콘텐츠를 만들어 주세요.
@@ -49,6 +49,7 @@ function buildPrompt(weather: WeatherData, mood: Mood, duration: Duration): stri
 ${bullets}
 
 [요청]
+- 가창 캐릭터(페르소나): ${persona ? `${persona.name} (${persona.role}) — ${persona.blurb}` : "AI 기상캐스터"} → 이 캐릭터의 톤·성격에 맞춰 작성
 - 무드/장르: ${moodLabel(mood)}
 - 길이: ${durationGuide(duration)}
 - 가사에는 위 '시간대 분석'의 실제 내용(기온, 비 오는 시간대 등)을 자연스럽게 녹여주세요.
@@ -67,14 +68,15 @@ interface GeminiResponse {
 export async function generateLyricsGemini(
   weather: WeatherData,
   mood: Mood,
-  duration: Duration
+  duration: Duration,
+  persona?: Persona
 ): Promise<LyricsResult> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY 미설정");
 
   const url = `${GEMINI_BASE}/models/${MODEL()}:generateContent?key=${encodeURIComponent(key)}`;
   const body = {
-    contents: [{ role: "user", parts: [{ text: buildPrompt(weather, mood, duration) }] }],
+    contents: [{ role: "user", parts: [{ text: buildPrompt(weather, mood, duration, persona) }] }],
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: RESPONSE_SCHEMA,

@@ -6,6 +6,7 @@ import {
   ForecastType,
   Mood,
   Duration,
+  Persona,
 } from "@/lib/types";
 
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
@@ -25,8 +26,8 @@ export const api = {
   weather: (date: string, forecastType: ForecastType, region: string) =>
     postJSON<WeatherData>("/api/weather", { date, forecastType, region }),
 
-  lyrics: (weather: WeatherData, mood: Mood, duration: Duration) =>
-    postJSON<LyricsResult>("/api/lyrics", { weather, mood, duration }),
+  lyrics: (weather: WeatherData, mood: Mood, duration: Duration, persona?: Persona) =>
+    postJSON<LyricsResult>("/api/lyrics", { weather, mood, duration, persona }),
 
   songs: (lyrics: LyricsResult, mood: Mood, duration: Duration) =>
     postJSON<{ songs: SongCandidate[] }>("/api/songs", { lyrics, mood, duration }),

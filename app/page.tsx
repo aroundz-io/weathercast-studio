@@ -11,7 +11,7 @@ import {
   VideoJob,
 } from "@/lib/types";
 import { api } from "@/lib/api";
-import { getPersona } from "@/lib/personas";
+import { getPersona, autoCast } from "@/lib/personas";
 import { Status } from "@/components/ui";
 import { VideoStatus } from "@/components/VideoPreview";
 import { TopBar } from "@/components/TopBar";
@@ -86,12 +86,15 @@ function reducer(state: State, action: Action): State {
 
     case "WEATHER_START":
       return { ...state, weatherStatus: "loading", error: null };
-    case "WEATHER_OK":
-      // 새 날씨는 하위 단계를 모두 무효화
+    case "WEATHER_OK": {
+      // 새 날씨 → 페르소나/장르 자동 캐스팅 + 하위 단계 무효화
+      const cast = autoCast(action.weather);
       return {
         ...state,
         weather: action.weather,
         weatherStatus: "done",
+        personaId: cast.personaId,
+        mood: cast.mood,
         lyrics: null,
         lyricsStatus: "idle",
         songs: [],
@@ -100,6 +103,7 @@ function reducer(state: State, action: Action): State {
         video: null,
         videoStatus: "idle",
       };
+    }
 
     case "LYRICS_START":
       return { ...state, lyricsStatus: "loading", error: null };
@@ -208,7 +212,7 @@ export default function Dashboard() {
     if (!state.weather) return;
     dispatch({ type: "LYRICS_START" });
     try {
-      const lyrics = await api.lyrics(state.weather, state.mood, state.duration);
+      const lyrics = await api.lyrics(state.weather, state.mood, state.duration, getPersona(state.personaId));
       dispatch({ type: "LYRICS_OK", lyrics });
     } catch (e) {
       dispatch({ type: "ERROR", scope: "lyrics", error: `가사 생성 실패: ${String(e)}` });

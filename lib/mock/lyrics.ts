@@ -1,4 +1,4 @@
-import { LyricsResult, Mood, Duration, WeatherData, ConditionCode } from "@/lib/types";
+import { LyricsResult, Mood, Duration, WeatherData, ConditionCode, Persona } from "@/lib/types";
 
 const MOOD_META: Record<
   Mood,
@@ -37,7 +37,7 @@ function rpick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function generateLyrics(weather: WeatherData, mood: Mood, duration: Duration): LyricsResult {
+export function generateLyrics(weather: WeatherData, mood: Mood, duration: Duration, persona?: Persona): LyricsResult {
   const m = MOOD_META[mood];
   const { region, condition, tempHigh, tempLow, precipitation, forecastLabel, conditionEmoji } = weather;
   const tagWords = weather.tags.map((t) => t.label);
@@ -79,7 +79,7 @@ export function generateLyrics(weather: WeatherData, mood: Mood, duration: Durat
 
   const thumbnailPrompt = `YouTube Shorts thumbnail, bold Korean title "${region} ${condition}", cute virtual weather idol character, ${CONDITION_EN[weather.conditionCode]} background, ${m.en} color palette, big readable typography, high contrast, eye-catching`;
 
-  const title = `${region} 날씨송 · ${condition} (${m.ko})`;
+  const title = `${region} ${condition} 날씨송 · ${persona ? persona.name : m.ko}`;
 
   return {
     title,

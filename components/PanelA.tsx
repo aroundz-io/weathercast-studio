@@ -4,7 +4,7 @@ import { Mood, Duration, WeatherData } from "@/lib/types";
 import { REGIONS } from "@/lib/mock/weather";
 import { dateDisplay, kstTodayStr, kstDatePlusDays } from "@/lib/weather/dates";
 import { moodLabel } from "@/lib/mock/lyrics";
-import { PERSONAS } from "@/lib/personas";
+import { PERSONAS, getPersona, autoCast } from "@/lib/personas";
 import { HourlyForecast } from "@/components/HourlyForecast";
 import { Button, Card, PanelHeader, StatusBadge, Field, inputClass, cn, Status } from "@/components/ui";
 
@@ -35,6 +35,8 @@ export function PanelA({
   onSet: (patch: Partial<ConceptInputs>) => void;
   onFetchWeather: () => void;
 }) {
+  const cast = weather ? autoCast(weather) : null;
+  const castPersona = cast ? getPersona(cast.personaId) : null;
   return (
     <Card className="flex h-full flex-col overflow-hidden">
       <PanelHeader
@@ -119,9 +121,16 @@ export function PanelA({
 
         <div className="h-px bg-white/10" />
 
-        {/* 메인 컨셉 */}
+        {cast && castPersona && (
+          <div className="rounded-lg border border-sky-400/30 bg-sky-500/10 px-3 py-2 text-[11px] leading-relaxed text-sky-200">
+            🤖 자동 캐스팅: <b>{cast.reason}</b> → {castPersona.emoji} {castPersona.name} ·{" "}
+            {moodLabel(cast.mood)} <span className="text-slate-400">(아래에서 수정 가능)</span>
+          </div>
+        )}
+
+        {/* 메인 컨셉 — 날씨 기반 자동 선택(수정 가능) */}
         <div>
-          <p className="mb-2 text-xs font-semibold text-slate-300">무드 / 장르</p>
+          <p className="mb-2 text-xs font-semibold text-slate-300">무드 / 장르 (자동)</p>
           <div className="flex flex-wrap gap-2">
             {MOODS.map((m) => (
               <button
@@ -161,7 +170,7 @@ export function PanelA({
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-semibold text-slate-300">페르소나 (가상 모델)</p>
+          <p className="mb-2 text-xs font-semibold text-slate-300">페르소나 (날씨 자동)</p>
           <div className="grid grid-cols-2 gap-2">
             {PERSONAS.map((p) => (
               <button
