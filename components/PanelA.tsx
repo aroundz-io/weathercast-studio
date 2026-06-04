@@ -1,7 +1,8 @@
 "use client";
 
-import { ForecastType, Mood, Duration, WeatherData } from "@/lib/types";
-import { FORECAST_LABELS, REGIONS } from "@/lib/mock/weather";
+import { Mood, Duration, WeatherData } from "@/lib/types";
+import { REGIONS } from "@/lib/mock/weather";
+import { dateDisplay, kstTodayStr, kstDatePlusDays } from "@/lib/weather/dates";
 import { moodLabel } from "@/lib/mock/lyrics";
 import { PERSONAS } from "@/lib/personas";
 import { HourlyForecast } from "@/components/HourlyForecast";
@@ -10,7 +11,6 @@ import { Button, Card, PanelHeader, StatusBadge, Field, inputClass, cn, Status }
 interface ConceptInputs {
   date: string;
   region: string;
-  forecastType: ForecastType;
   mood: Mood;
   duration: Duration;
   personaId: string;
@@ -22,7 +22,6 @@ const DURATIONS: Duration[] = [15, 30, 60];
 export function PanelA({
   date,
   region,
-  forecastType,
   mood,
   duration,
   personaId,
@@ -45,12 +44,14 @@ export function PanelA({
         right={<StatusBadge status={weatherStatus} idleLabel="미호출" />}
       />
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
-        {/* 입력 */}
+        {/* 입력 — 날짜 하나로 예보일 선택 */}
         <div className="grid grid-cols-2 gap-3">
           <Field label="날짜">
             <input
               type="date"
               value={date}
+              min={kstTodayStr()}
+              max={kstDatePlusDays(6)}
               onChange={(e) => onSet({ date: e.target.value })}
               className={inputClass}
             />
@@ -69,20 +70,9 @@ export function PanelA({
             </select>
           </Field>
         </div>
-
-        <Field label="예보 타입">
-          <select
-            value={forecastType}
-            onChange={(e) => onSet({ forecastType: e.target.value as ForecastType })}
-            className={inputClass}
-          >
-            {(Object.keys(FORECAST_LABELS) as ForecastType[]).map((f) => (
-              <option key={f} value={f}>
-                {FORECAST_LABELS[f]}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <p className="-mt-2 text-[11px] text-slate-500">
+          오늘~+6일 중 선택 · 고른 날짜의 예보를 불러옵니다
+        </p>
 
         <Button onClick={onFetchWeather} loading={weatherStatus === "loading"} className="w-full">
           {weatherStatus === "loading" ? "케이웨더 호출 중…" : "🛰 케이웨더 데이터 호출"}
@@ -97,7 +87,9 @@ export function PanelA({
                 <p className="text-sm font-bold text-white">
                   {weather.region} · {weather.condition}
                 </p>
-                <p className="text-xs text-slate-400">{weather.forecastLabel}</p>
+                <p className="text-xs text-slate-400">
+                  📅 {dateDisplay(weather.date)} · {weather.forecastLabel}
+                </p>
               </div>
               <div className="ml-auto text-right">
                 <p className="text-lg font-bold text-white">

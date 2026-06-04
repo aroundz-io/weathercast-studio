@@ -1,5 +1,5 @@
 import { WeatherData, ForecastType, HourlyPoint, ConditionCode } from "@/lib/types";
-import { FORECAST_LABELS } from "@/lib/weather/constants";
+import { forecastLabelFromDate } from "@/lib/weather/dates";
 import {
   CONDITION_META,
   buildTags,
@@ -163,13 +163,13 @@ export async function fetchKWeather(
   const uvIndex = uvToLabel(null); // UV는 별도 센서(kw-fct-idx-uv1) — 후속 확장
 
   const tags = buildTags({ cond: headline.code, tempHigh: hi, tempLow: lo, precipitation, windSpeed, fineDust });
-  const analysis = analyzeHourly(hourly, hi, lo, FORECAST_LABELS[forecastType]);
+  const analysis = analyzeHourly(hourly, hi, lo, forecastLabelFromDate(targetDate));
 
   return {
     region,
     date: targetDate,
     forecastType,
-    forecastLabel: FORECAST_LABELS[forecastType],
+    forecastLabel: forecastLabelFromDate(targetDate),
     tempHigh: hi,
     tempLow: lo,
     condition: headline.label,
@@ -180,7 +180,7 @@ export async function fetchKWeather(
     windSpeed,
     fineDust,
     uvIndex,
-    summary: buildSummary(FORECAST_LABELS[forecastType], hi, lo, precipitation, fineDust),
+    summary: buildSummary(forecastLabelFromDate(targetDate), hi, lo, precipitation, fineDust),
     tags,
     hourly,
     analysis,

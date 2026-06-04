@@ -262,7 +262,6 @@ export default function Dashboard() {
           <PanelA
             date={state.date}
             region={state.region}
-            forecastType={state.forecastType}
             mood={state.mood}
             duration={state.duration}
             personaId={state.personaId}

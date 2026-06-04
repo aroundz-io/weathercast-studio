@@ -2,6 +2,7 @@ import { WeatherData, ForecastType, ConditionCode, FineDust, HourlyPoint } from 
 import { REGIONS, FORECAST_LABELS } from "@/lib/weather/constants";
 import { CONDITION_META, buildTags, buildSummary } from "@/lib/weather/derive";
 import { analyzeHourly } from "@/lib/weather/analyze";
+import { forecastLabelFromDate } from "@/lib/weather/dates";
 
 // PanelA 등에서 쓰던 import 경로 호환을 위해 재노출
 export { REGIONS, FORECAST_LABELS };
@@ -102,13 +103,13 @@ export function generateWeather(
   const meta = CONDITION_META[cond];
   const hourly = buildMockHourly(rng, date, tempHigh, tempLow, cond, precipitation);
   const tags = buildTags({ cond, tempHigh, tempLow, precipitation, windSpeed, fineDust });
-  const analysis = analyzeHourly(hourly, tempHigh, tempLow, FORECAST_LABELS[forecastType]);
+  const analysis = analyzeHourly(hourly, tempHigh, tempLow, forecastLabelFromDate(date));
 
   return {
     region,
     date,
     forecastType,
-    forecastLabel: FORECAST_LABELS[forecastType],
+    forecastLabel: forecastLabelFromDate(date),
     tempHigh,
     tempLow,
     condition: meta.label,
@@ -119,7 +120,7 @@ export function generateWeather(
     windSpeed,
     fineDust,
     uvIndex,
-    summary: buildSummary(FORECAST_LABELS[forecastType], tempHigh, tempLow, precipitation, fineDust),
+    summary: buildSummary(forecastLabelFromDate(date), tempHigh, tempLow, precipitation, fineDust),
     tags,
     hourly,
     analysis,

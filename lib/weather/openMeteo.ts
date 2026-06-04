@@ -1,5 +1,6 @@
 import { WeatherData, HourlyPoint, ForecastType } from "@/lib/types";
-import { REGION_COORDS, FORECAST_LABELS } from "@/lib/weather/constants";
+import { REGION_COORDS } from "@/lib/weather/constants";
+import { forecastLabelFromDate } from "@/lib/weather/dates";
 import { wmoToCondition } from "@/lib/weather/wmo";
 import { buildTags, buildSummary, pickHeadlineCondition, pmToFineDust, uvToLabel } from "@/lib/weather/derive";
 import { analyzeHourly } from "@/lib/weather/analyze";
@@ -104,13 +105,13 @@ export async function fetchRealWeather(
   const fineDust = pmToFineDust(pm25);
   const uvIndex = uvToLabel(uv);
   const tags = buildTags({ cond: headline.code, tempHigh: hi, tempLow: lo, precipitation, windSpeed, fineDust });
-  const analysis = analyzeHourly(hourly, hi, lo, FORECAST_LABELS[forecastType]);
+  const analysis = analyzeHourly(hourly, hi, lo, forecastLabelFromDate(targetDate));
 
   return {
     region,
     date: targetDate,
     forecastType,
-    forecastLabel: FORECAST_LABELS[forecastType],
+    forecastLabel: forecastLabelFromDate(targetDate),
     tempHigh: hi,
     tempLow: lo,
     condition: headline.label,
@@ -121,7 +122,7 @@ export async function fetchRealWeather(
     windSpeed,
     fineDust,
     uvIndex,
-    summary: buildSummary(FORECAST_LABELS[forecastType], hi, lo, precipitation, fineDust),
+    summary: buildSummary(forecastLabelFromDate(targetDate), hi, lo, precipitation, fineDust),
     tags,
     hourly,
     analysis,
