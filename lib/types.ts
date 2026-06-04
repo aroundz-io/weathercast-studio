@@ -68,6 +68,8 @@ export interface WeatherData {
   observedAt: string; // 기준 시각 ISO
 }
 
+export type LyricsSource = "gemini" | "mock";
+
 export interface LyricsResult {
   title: string;
   lyrics: string; // [Verse]/[Chorus] 메타태그 포함
@@ -76,6 +78,7 @@ export interface LyricsResult {
   videoPrompt: string; // 영문 영상 프롬프트
   thumbnailText: string; // 썸네일 메인 텍스트
   thumbnailPrompt: string; // 영문 썸네일 프롬프트
+  source: LyricsSource; // Gemini 실연동 / 목업 구분
 }
 
 export interface SongCandidate {

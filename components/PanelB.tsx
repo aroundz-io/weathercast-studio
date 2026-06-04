@@ -63,7 +63,23 @@ export function PanelB({
         step={2}
         title="기획 · 텍스트 생성"
         subtitle="Gemini 가사·스크립트 · 직접 편집 가능"
-        right={<StatusBadge status={lyricsStatus} idleLabel="미생성" />}
+        right={
+          <div className="flex items-center gap-2">
+            {lyrics && (
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1",
+                  lyrics.source === "gemini"
+                    ? "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30"
+                    : "bg-rose-500/15 text-rose-300 ring-rose-400/30"
+                )}
+              >
+                {lyrics.source === "gemini" ? "✨ Gemini 실연동" : "목업"}
+              </span>
+            )}
+            <StatusBadge status={lyricsStatus} idleLabel="미생성" />
+          </div>
+        }
       />
       <div className="flex-1 space-y-4 overflow-y-auto p-5">
         <Button

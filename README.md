@@ -3,10 +3,10 @@
 케이웨더 데이터 기반 **AI 날씨송·영상·썸네일 반자동 생성** 대시보드.
 한 화면에서 `데이터 → 텍스트 → 미디어 → 패키징` 4단계 파이프라인을 흐름대로 진행합니다.
 
-> **데이터 현황:** 날씨는 이제 **실데이터**입니다 — `app/api/weather`가 **Open-Meteo**(무료·키 불필요)로
-> 실시간 **시간별 예보**를 가져와 분석합니다. (케이웨더 키가 생기면 `lib/weather/openMeteo.ts`만 교체)
-> Gemini·Suno·OmniHuman/Seedance는 아직 **목업**(`app/api/*`)이며, 우상단 뱃지와 시간별 카드 라벨로
-> 실데이터/목업을 구분합니다.
+> **데이터 현황:**
+> - **날씨 = 실데이터.** `app/api/weather` 체인: **케이웨더**(`KWEATHER_API_KEY` 설정 시) → **Open-Meteo**(무료) → 목업. 실시간 시간별 예보 + 분석.
+> - **가사 = Gemini 실연동**(`GEMINI_API_KEY` 설정 시; 미설정 시 목업).
+> - Suno·OmniHuman/Seedance는 아직 **목업**. 화면 뱃지로 실데이터·Gemini·목업을 구분합니다.
 
 ## 실행
 
@@ -68,7 +68,7 @@ lib/
 | 라우트 | 실제 서비스 | 환경변수 | 비고 |
 | --- | --- | --- | --- |
 | `/api/weather` | ✅ **Open-Meteo (실데이터)** · 케이웨더(선택) | 케이웨더만 키 | 기본 Open-Meteo 실시간. `KWEATHER_API_KEY`+`KWEATHER_FORECAST_PATH` 설정 시 `lib/weather/kweather.ts`로 케이웨더 우선 사용(실패 시 Open-Meteo 폴백) |
-| `/api/lyrics` | Google Gemini | `GEMINI_API_KEY` | 가장 안정적 |
+| `/api/lyrics` | ✅ **Google Gemini** | `GEMINI_API_KEY` | 설정 시 Gemini 실연동(JSON 모드 구조화 출력), 미설정 시 목업 폴백. 모델 `GEMINI_MODEL`(기본 gemini-2.5-flash) |
 | `/api/songs` | Suno | `SUNO_API_KEY` | ⚠️ 공식 API 접근 제한적 — 비동기 job 폴링 구조 필요 |
 | `/api/video` | OmniHuman/Seedance | `VIDEO_API_KEY` | ⚠️ ByteDance 계열, 접근 난이도 |
 

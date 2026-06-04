@@ -89,5 +89,6 @@ export function generateLyrics(weather: WeatherData, mood: Mood, duration: Durat
     videoPrompt,
     thumbnailText,
     thumbnailPrompt,
+    source: "mock",
   };
 }
