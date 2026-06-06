@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WeatherData, Persona, ConditionCode } from "@/lib/types";
+import { weekdayKo, relativeDay } from "@/lib/weather/dates";
 import { Button, cn } from "@/components/ui";
 
 type ToneKey = "sky" | "sunset" | "night" | "mint";
@@ -23,12 +24,11 @@ const DEFAULT_TONE: Record<ConditionCode, ToneKey> = {
   thunder: "night",
 };
 
+// 썸네일 메인 텍스트 = ① 년/월/일·요일 ② 오늘 상태 ③ 날씨송 주인공(페르소나) 이름
 export function Thumbnail({
-  text,
   weather,
   persona,
 }: {
-  text: string;
   weather: WeatherData | null;
   persona: Persona;
 }) {
@@ -61,49 +61,54 @@ export function Thumbnail({
     ctx.fillStyle = rg;
     ctx.fillRect(0, 0, w, h);
 
-    // 날씨 이모지 (우상단)
+    // 날씨 이모지 (우상단, 시각적 상태)
     ctx.textBaseline = "alphabetic";
-    ctx.font = `${Math.round(h * 0.26)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+    const statusEmoji = weather?.current?.emoji ?? weather?.conditionEmoji ?? "⛅";
+    ctx.font = `${Math.round(h * 0.3)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
     ctx.globalAlpha = 0.95;
-    ctx.fillText(weather?.conditionEmoji ?? "⛅", w - h * 0.3, h * 0.36);
+    ctx.fillText(statusEmoji, w - h * 0.34, h * 0.34);
     ctx.globalAlpha = 1;
 
-    // 페르소나 (좌상단)
-    ctx.font = `700 ${Math.round(h * 0.04)}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.fillText(`${persona.emoji} ${persona.name}`, w * 0.06, h * 0.12);
-
-    // 메인 텍스트
-    const fs = Math.round(aspect === "16:9" ? w * 0.085 : w * 0.12);
-    ctx.font = `800 ${fs}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
-    ctx.fillStyle = "#ffffff";
+    const fs = Math.round(aspect === "16:9" ? w * 0.075 : w * 0.1);
+    const x = w * 0.07;
     ctx.shadowColor = "rgba(0,0,0,0.5)";
     ctx.shadowBlur = h * 0.02;
     ctx.shadowOffsetY = h * 0.008;
-    const lines = (text || "오늘의 날씨").split("\n");
-    let y = h * (aspect === "16:9" ? 0.5 : 0.58);
-    for (const ln of lines) {
-      ctx.fillText(ln, w * 0.06, y);
-      y += fs * 1.12;
+    let y = h * 0.42;
+
+    // ① 년도 · 날짜 · 요일
+    ctx.font = `700 ${Math.round(fs * 0.62)}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+    if (weather) {
+      const [yy, mm, dd2] = weather.date.split("-");
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.fillText(`${yy}년 ${Number(mm)}월 ${Number(dd2)}일 (${weekdayKo(weather.date)})`, x, y);
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.fillText("날씨를 먼저 불러오세요", x, y);
     }
+
+    // ② 오늘 상태 (오늘/내일 + 날씨)
+    if (weather) {
+      const rel = relativeDay(weather.date);
+      const cond = weather.current ? weather.current.condition : weather.condition;
+      y += fs * 1.05;
+      ctx.font = `800 ${fs}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`${rel ? rel + " " : ""}${cond}`, x, y);
+    }
+
+    // ③ 날씨송 주인공 (페르소나 이름)
+    y += fs * 1.2;
+    ctx.font = `800 ${Math.round(fs * 1.05)}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+    ctx.fillStyle = persona.accent;
+    ctx.fillText(`${persona.emoji} ${persona.name}`, x, y);
     ctx.shadowColor = "transparent";
 
-    // 서브 정보
-    if (weather) {
-      ctx.font = `600 ${Math.round(fs * 0.32)}px "Malgun Gothic",sans-serif`;
-      ctx.fillStyle = "rgba(255,255,255,0.88)";
-      ctx.fillText(
-        `${weather.date} · ${weather.region} · 강수 ${weather.precipitation}%`,
-        w * 0.06,
-        y + fs * 0.1
-      );
-    }
-
-    // 브랜드 칩
+    // 브랜드 워터마크
     ctx.font = `700 ${Math.round(fs * 0.3)}px "Malgun Gothic",sans-serif`;
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.fillText("⛅ WeatherCast", w * 0.06, h * 0.93);
-  }, [text, weather, persona, tone, aspect]);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillText("⛅ WeatherCast", x, h * 0.93);
+  }, [weather, persona, tone, aspect]);
 
   function download() {
     const canvas = canvasRef.current;
@@ -131,9 +136,7 @@ export function Thumbnail({
                 "h-6 w-6 rounded-full ring-2 transition",
                 tone === k ? "ring-white" : "ring-transparent hover:ring-white/40"
               )}
-              style={{
-                background: `linear-gradient(135deg, ${TONES[k].from}, ${TONES[k].to})`,
-              }}
+              style={{ background: `linear-gradient(135deg, ${TONES[k].from}, ${TONES[k].to})` }}
             />
           ))}
           <div className="ml-1 flex overflow-hidden rounded-lg border border-white/10 text-[11px]">

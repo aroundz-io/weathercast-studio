@@ -142,7 +142,7 @@ export function PanelC({
         {/* ── 썸네일 ── */}
         <section>
           <SectionLabel icon="🖼" title="썸네일 (실시간 렌더링)" />
-          <Thumbnail text={lyrics?.thumbnailText ?? ""} weather={weather} persona={persona} />
+          <Thumbnail weather={weather} persona={persona} />
         </section>
 
         {/* ── 패키징 / 발행 ── */}
