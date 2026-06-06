@@ -3,11 +3,12 @@ import { moodLabel } from "@/lib/mock/lyrics";
 
 // ── Google Gemini 가사·프롬프트 실연동 ──────────────────────────────────────
 // 키발급: https://aistudio.google.com/apikey (무료 티어 있음)
-// .env: GEMINI_API_KEY (필수), GEMINI_MODEL (선택, 기본 gemini-2.5-flash)
-// 키 미설정/실패 시 라우트가 목업 가사로 폴백합니다.
+// .env: GEMINI_API_KEY (필수), GEMINI_MODEL (선택, 기본 gemini-2.5-pro)
+// 키 미설정/실패/타임아웃 시 라우트가 목업 가사로 폴백합니다.
+// ⚠️ Pro는 Flash보다 느리고(수~수십초) 무료 티어 한도가 낮음 → 빌링(유료) 권장. 빠르게 쓰려면 GEMINI_MODEL=gemini-2.5-flash.
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
-const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-pro";
 
 export function isGeminiConfigured(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
@@ -89,7 +90,7 @@ export async function generateLyricsGemini(
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(45000), // Pro는 느릴 수 있어 여유. maxDuration 내에서 폴백.
   });
   if (!res.ok) {
     const t = await res.text().catch(() => "");

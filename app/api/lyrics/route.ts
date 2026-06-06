@@ -5,6 +5,9 @@ import { resolveWeather } from "@/lib/weather/resolve";
 import { getPersona, autoCast } from "@/lib/personas";
 import { WeatherData, Mood, Duration, ForecastType, Persona } from "@/lib/types";
 
+// Gemini Pro는 응답이 느릴 수 있어 함수 실행시간 상향 (플랜이 허용하는 한도까지)
+export const maxDuration = 60;
+
 const MOODS: Mood[] = ["upbeat", "calm", "hiphop", "ballad", "kids"];
 const DURS: Duration[] = [15, 30, 60];
 
