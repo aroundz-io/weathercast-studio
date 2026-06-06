@@ -5,6 +5,7 @@ export const PERSONAS: Persona[] = [
   {
     id: "sunny",
     name: "써니",
+    nameEn: "Sunny",
     role: "AI 기상캐스터 · 메인",
     emoji: "🌞",
     accent: "#fbbf24",
@@ -13,6 +14,7 @@ export const PERSONAS: Persona[] = [
   {
     id: "rain",
     name: "레인",
+    nameEn: "Rain",
     role: "버추얼 아이돌",
     emoji: "🌧️",
     accent: "#38bdf8",
@@ -21,6 +23,7 @@ export const PERSONAS: Persona[] = [
   {
     id: "cloudy",
     name: "클라우디",
+    nameEn: "Cloudy",
     role: "버추얼 아이돌",
     emoji: "☁️",
     accent: "#a5b4fc",
@@ -29,6 +32,7 @@ export const PERSONAS: Persona[] = [
   {
     id: "thunder",
     name: "썬더",
+    nameEn: "Thunder",
     role: "버추얼 아이돌",
     emoji: "⚡",
     accent: "#f472b6",

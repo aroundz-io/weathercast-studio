@@ -87,27 +87,54 @@ export function Thumbnail({
       ctx.fillText("날씨를 먼저 불러오세요", x, y);
     }
 
-    // ② 오늘 상태 (오늘/내일 + 날씨)
+    // ② 오늘 상태 (예: 오늘은 맑음!)
     if (weather) {
       const rel = relativeDay(weather.date);
       const cond = weather.current ? weather.current.condition : weather.condition;
+      let statusLine: string;
+      if (rel) {
+        const josa = (rel.charCodeAt(rel.length - 1) - 0xac00) % 28 !== 0 ? "은" : "는";
+        statusLine = `${rel}${josa} ${cond}!`;
+      } else {
+        statusLine = `${cond}!`;
+      }
       y += fs * 1.05;
       ctx.font = `800 ${fs}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
       ctx.fillStyle = "#ffffff";
-      ctx.fillText(`${rel ? rel + " " : ""}${cond}`, x, y);
+      ctx.fillText(statusLine, x, y);
     }
 
-    // ③ 날씨송 주인공 (페르소나 이름)
-    y += fs * 1.2;
-    ctx.font = `800 ${Math.round(fs * 1.05)}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+    // ③ 날씨송 주인공 (페르소나) — 한글 이름 + 영문
+    y += fs * 1.25;
+    ctx.font = `800 ${Math.round(fs * 1.0)}px "Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
     ctx.fillStyle = persona.accent;
     ctx.fillText(`${persona.emoji} ${persona.name}`, x, y);
+    y += fs * 0.56;
+    ctx.font = `italic 700 ${Math.round(fs * 0.5)}px "Segoe UI","Malgun Gothic",sans-serif`;
+    ctx.fillText(persona.nameEn, x, y);
     ctx.shadowColor = "transparent";
 
-    // 브랜드 워터마크
-    ctx.font = `700 ${Math.round(fs * 0.3)}px "Malgun Gothic",sans-serif`;
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.fillText("⛅ WeatherCast", x, h * 0.93);
+    // 브랜드 워터마크 (하단 우측) — 케이웨더
+    const bw = aspect === "16:9" ? w * 0.3 : w * 0.55;
+    const bh = h * (aspect === "16:9" ? 0.1 : 0.07);
+    const bx = w - bw - w * 0.05;
+    const by = h - bh - h * 0.05;
+    ctx.fillStyle = "rgba(8,35,68,0.9)"; // 케이웨더 남색
+    if (typeof ctx.roundRect === "function") {
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bw, bh, bh * 0.22);
+      ctx.fill();
+    } else {
+      ctx.fillRect(bx, by, bw, bh);
+    }
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `800 ${Math.round(bh * 0.42)}px "Segoe UI","Malgun Gothic",sans-serif`;
+    ctx.fillText("K WEATHER", bx + bw / 2, by + bh * 0.52);
+    ctx.font = `500 ${Math.round(bh * 0.26)}px "Malgun Gothic",sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillText("날씨와 함께하는 행복", bx + bw / 2, by + bh * 0.83);
+    ctx.textAlign = "left";
   }, [weather, persona, tone, aspect]);
 
   function download() {

@@ -125,6 +125,7 @@ export interface VideoJob {
 export interface Persona {
   id: string;
   name: string;
+  nameEn: string;
   role: string;
   emoji: string;
   accent: string; // hex
