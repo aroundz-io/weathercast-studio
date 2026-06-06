@@ -83,6 +83,8 @@ export async function generateLyricsGemini(
       responseSchema: RESPONSE_SCHEMA,
       temperature: 1.1,
       maxOutputTokens: 2048,
+      // Pro 지연의 주범인 'thinking'을 최소화 → 응답 속도↑ (가사엔 깊은 추론 불필요, Pro 생성 품질은 유지)
+      thinkingConfig: { thinkingBudget: 128 },
     },
   };
 
