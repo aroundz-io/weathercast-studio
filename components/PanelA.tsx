@@ -84,20 +84,35 @@ export function PanelA({
         {weather && (
           <div className="animate-fade-in rounded-xl border border-white/10 bg-ink-900/50 p-4">
             <div className="flex items-center gap-3">
-              <span className="text-4xl">{weather.conditionEmoji}</span>
-              <div>
+              <span className="text-4xl">
+                {weather.current ? weather.current.emoji : weather.conditionEmoji}
+              </span>
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-white">
-                  {weather.region} · {weather.condition}
+                  {weather.region} · {weather.current ? weather.current.condition : weather.condition}
                 </p>
                 <p className="text-xs text-slate-400">
                   📅 {dateDisplay(weather.date)} · {weather.forecastLabel}
                 </p>
               </div>
-              <div className="ml-auto text-right">
-                <p className="text-lg font-bold text-white">
-                  {weather.tempHigh}°
-                  <span className="text-sm font-normal text-slate-400"> / {weather.tempLow}°</span>
-                </p>
+              <div className="ml-auto shrink-0 text-right">
+                {weather.current ? (
+                  <>
+                    <p className="text-2xl font-bold leading-none text-white">{weather.current.temp}°</p>
+                    <p className="text-[10px] font-medium text-emerald-300">
+                      ● 현재(실황)
+                      {weather.current.feelsLike != null ? ` · 체감 ${weather.current.feelsLike}°` : ""}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">
+                      최고 {weather.tempHigh}° / 최저 {weather.tempLow}°
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-lg font-bold text-white">
+                    {weather.tempHigh}°
+                    <span className="text-sm font-normal text-slate-400"> / {weather.tempLow}°</span>
+                  </p>
+                )}
               </div>
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2 text-center text-[11px]">

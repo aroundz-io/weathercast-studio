@@ -1,4 +1,4 @@
-import { WeatherData, ForecastType, HourlyPoint, ConditionCode } from "@/lib/types";
+import { WeatherData, ForecastType, HourlyPoint, ConditionCode, CurrentObservation } from "@/lib/types";
 import { forecastLabelFromDate } from "@/lib/weather/dates";
 import {
   CONDITION_META,
@@ -91,21 +91,6 @@ export async function fetchKWeather(
 ): Promise<WeatherData> {
   const code = KW_REGION_CODE[region] || KW_REGION_CODE["서울"];
 
-  // 시간별(시군구, 3일·1시간) + 미세먼지(시군구) 병렬 호출
-  const [hourlyRaw, dustRaw] = await Promise.all([
-    kwFetch("kw-3d1h2", code),
-    kwFetch("kw-dust-r2", code).catch(() => null),
-  ]);
-
-  const hd = innerData(hourlyRaw);
-  if (!hd) throw new Error("KWeather 시간별 데이터 없음");
-  const temp = flat(hd.temp);
-  const rainP = flat(hd.rainP);
-  const humi = flat(hd.humi ?? hd.reh);
-  const wind = flat(hd.ws ?? hd.wsd);
-  const wText = flat(hd.wText);
-  if (!temp || !temp.length) throw new Error("KWeather temp 배열 없음");
-
   // ── KST(UTC+9) 기준 — Vercel 서버는 UTC라 반드시 보정 ──
   // 평탄 배열은 'KST 오늘 00시'부터의 시간 인덱스. kw-3d1h2는 오늘~+2일(3일) 제공.
   const nowKst = new Date(Date.now() + 9 * 60 * 60 * 1000);
@@ -128,6 +113,22 @@ export async function fetchKWeather(
       targetDate = date;
     }
   }
+
+  // 시간별(시군구) + 미세먼지 + (오늘이면) 실황 kw-odam2 병렬 호출
+  const [hourlyRaw, dustRaw, odamRaw] = await Promise.all([
+    kwFetch("kw-3d1h2", code),
+    kwFetch("kw-dust-r2", code).catch(() => null),
+    offset === 0 ? kwFetch("kw-odam2", code).catch(() => null) : Promise.resolve(null),
+  ]);
+
+  const hd = innerData(hourlyRaw);
+  if (!hd) throw new Error("KWeather 시간별 데이터 없음");
+  const temp = flat(hd.temp);
+  const rainP = flat(hd.rainP);
+  const humi = flat(hd.humi ?? hd.reh);
+  const wind = flat(hd.ws ?? hd.wsd);
+  const wText = flat(hd.wText);
+  if (!temp || !temp.length) throw new Error("KWeather temp 배열 없음");
 
   const hourly: HourlyPoint[] = [];
   for (let h = 0; h < 24; h++) {
@@ -162,6 +163,24 @@ export async function fetchKWeather(
   const fineDust = pmToFineDust(pm25);
   const uvIndex = uvToLabel(null); // UV는 별도 센서(kw-fct-idx-uv1) — 후속 확장
 
+  // 실황(관측) — 오늘일 때만 (kw-odam2: t1h 현재기온, senseTemp 체감, reh 습도, wsd 풍속, wText 날씨)
+  const od = innerData(odamRaw);
+  let current: CurrentObservation | null = null;
+  if (od && od.t1h != null) {
+    const cc = wTextToCode(od.wText);
+    const meta = CONDITION_META[cc];
+    current = {
+      temp: Math.round(num(od.t1h)),
+      feelsLike: od.senseTemp != null ? Math.round(num(od.senseTemp)) : null,
+      condition: meta.label,
+      conditionCode: cc,
+      emoji: meta.emoji,
+      humidity: Math.round(num(od.reh)),
+      windSpeed: Math.round(num(od.wsd)),
+      observedAt: `${todayStr}T${pad(curHour)}:00`,
+    };
+  }
+
   const tags = buildTags({ cond: headline.code, tempHigh: hi, tempLow: lo, precipitation, windSpeed, fineDust });
   const analysis = analyzeHourly(hourly, hi, lo, forecastLabelFromDate(targetDate));
 
@@ -186,5 +205,6 @@ export async function fetchKWeather(
     analysis,
     source: "kweather",
     observedAt: `${todayStr}T${String(curHour).padStart(2, "0")}:00`,
+    current,
   };
 }

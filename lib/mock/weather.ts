@@ -126,5 +126,6 @@ export function generateWeather(
     analysis,
     source: "mock",
     observedAt: `${date}T12:00`,
+    current: null,
   };
 }

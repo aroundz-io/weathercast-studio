@@ -1,4 +1,4 @@
-import { WeatherData, HourlyPoint, ForecastType } from "@/lib/types";
+import { WeatherData, HourlyPoint, ForecastType, CurrentObservation } from "@/lib/types";
 import { REGION_COORDS } from "@/lib/weather/constants";
 import { forecastLabelFromDate } from "@/lib/weather/dates";
 import { wmoToCondition } from "@/lib/weather/wmo";
@@ -74,6 +74,22 @@ export async function fetchRealWeather(
 
   const nowKey = j.current?.time ? j.current.time.slice(0, 13) : null; // "YYYY-MM-DDTHH"
 
+  // 실황(관측 추정) — 대상 날짜가 오늘일 때만
+  let current: CurrentObservation | null = null;
+  if (j.current && targetDate === j.current.time.slice(0, 10)) {
+    const wc = wmoToCondition(j.current.weather_code);
+    current = {
+      temp: Math.round(j.current.temperature_2m),
+      feelsLike: null,
+      condition: wc.label,
+      conditionCode: wc.code,
+      emoji: wc.emoji,
+      humidity: Math.round(j.current.relative_humidity_2m),
+      windSpeed: Math.round(j.current.wind_speed_10m),
+      observedAt: j.current.time,
+    };
+  }
+
   const hourly: HourlyPoint[] = [];
   for (let i = 0; i < j.hourly.time.length; i++) {
     const t = j.hourly.time[i];
@@ -128,5 +144,6 @@ export async function fetchRealWeather(
     analysis,
     source: "open-meteo",
     observedAt: j.current?.time ?? "",
+    current,
   };
 }

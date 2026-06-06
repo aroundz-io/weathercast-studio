@@ -45,6 +45,17 @@ export interface ForecastAnalysis {
   bullets: string[]; // 시간대별 분석 포인트
 }
 
+export interface CurrentObservation {
+  temp: number; // 현재 기온 (실황/관측)
+  feelsLike: number | null; // 체감온도
+  condition: string;
+  conditionCode: ConditionCode;
+  emoji: string;
+  humidity: number;
+  windSpeed: number;
+  observedAt: string; // 관측 기준 시각
+}
+
 export interface WeatherData {
   region: string;
   date: string;
@@ -66,6 +77,7 @@ export interface WeatherData {
   analysis: ForecastAnalysis; // 시간열 분석 → 예보
   source: WeatherSource; // 실데이터 여부
   observedAt: string; // 기준 시각 ISO
+  current: CurrentObservation | null; // 실황(관측) — 오늘일 때만, 없으면 null
 }
 
 export type LyricsSource = "gemini" | "mock";
