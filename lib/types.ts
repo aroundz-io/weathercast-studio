@@ -83,13 +83,17 @@ export interface WeatherData {
 export type LyricsSource = "gemini" | "mock";
 
 export interface LyricsResult {
+  castReason: string; // Step1: 오늘의 주인공(멤버) 선정 이유 — 멤버 말투
   title: string;
-  lyrics: string; // [Verse]/[Chorus] 메타태그 포함
-  narration: string; // 나레이션 스크립트
-  sunoStyleTags: string[]; // ["Upbeat Pop", "K-pop", ...]
-  videoPrompt: string; // 영문 영상 프롬프트
-  thumbnailText: string; // 썸네일 메인 텍스트
-  thumbnailPrompt: string; // 영문 썸네일 프롬프트
+  lyrics: string; // Step2: [Intro]/[Verse]/[Chorus]/[Outro] — 실시간 날씨+생활팁
+  narration: string; // 방송 나레이션 스크립트
+  sunoStyleTags: string[]; // Step2: SUNO Style of Music (멤버 고정 장르 + BPM + 날씨 무드)
+  imagePrompt: string; // Step3: AI 이미지(비주얼) 영문 프롬프트 (9:16, 필수 키워드 포함)
+  videoPrompt: string; // 영상(MV) 영문 프롬프트
+  thumbnailText: string; // 썸네일 메인 텍스트(보조)
+  thumbnailPrompt: string; // 영문 썸네일 프롬프트 (= imagePrompt, 호환용)
+  socialCaption: string; // Step4: 소셜 미디어 자막/캡션
+  hashtags: string[]; // Step4: 추천 해시태그
   source: LyricsSource; // Gemini 실연동 / 목업 구분
 }
 

@@ -278,6 +278,7 @@ export default function Dashboard() {
             weather={state.weather}
             lyrics={state.lyrics}
             lyricsStatus={state.lyricsStatus}
+            persona={persona}
             onGenerate={onGenerateLyrics}
             onEdit={(patch) => dispatch({ type: "EDIT_LYRICS", patch })}
           />

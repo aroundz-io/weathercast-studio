@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LyricsResult, WeatherData } from "@/lib/types";
+import { LyricsResult, WeatherData, Persona } from "@/lib/types";
 import {
   Button,
   Card,
@@ -17,12 +17,14 @@ export function PanelB({
   weather,
   lyrics,
   lyricsStatus,
+  persona,
   onGenerate,
   onEdit,
 }: {
   weather: WeatherData | null;
   lyrics: LyricsResult | null;
   lyricsStatus: Status;
+  persona: Persona;
   onGenerate: () => void;
   onEdit: (patch: Partial<LyricsResult>) => void;
 }) {
@@ -30,6 +32,7 @@ export function PanelB({
   const [styleView, setStyleView] = useState<"tags" | "prompt">("tags");
   const [promptDraft, setPromptDraft] = useState("");
   const [copied, setCopied] = useState(false);
+  const [hashCopied, setHashCopied] = useState(false);
   // 내가 프롬프트를 파싱해 올린 변경인지 구분하는 시그니처 (외부 변경만 초안 재동기화)
   const lastSyncedRef = useRef("");
 
@@ -83,11 +86,30 @@ export function PanelB({
     }
   }
 
+  async function copyHashtags() {
+    if (!lyrics) return;
+    try {
+      await navigator.clipboard.writeText(lyrics.hashtags.join(" "));
+      setHashCopied(true);
+      setTimeout(() => setHashCopied(false), 1500);
+    } catch {
+      /* 무시 */
+    }
+  }
+
   function downloadScript() {
     if (!lyrics) return;
-    const body = `# ${lyrics.title}\n\n[가사]\n${lyrics.lyrics}\n\n[나레이션]\n${lyrics.narration}\n\n[Suno 스타일]\n${lyrics.sunoStyleTags.join(
-      ", "
-    )}\n\n[영상 프롬프트]\n${lyrics.videoPrompt}\n\n[썸네일 텍스트]\n${lyrics.thumbnailText}\n`;
+    const body =
+      `# ${lyrics.title}\n\n` +
+      `[오늘의 주인공]\n${persona.name} (${persona.nameEn}) — ${lyrics.castReason}\n\n` +
+      `[SUNO Style of Music]\n${lyrics.sunoStyleTags.join(", ")}\n\n` +
+      `[가사]\n${lyrics.lyrics}\n\n` +
+      `[나레이션]\n${lyrics.narration}\n\n` +
+      `[AI 이미지 프롬프트]\n${lyrics.imagePrompt}\n\n` +
+      `[영상 프롬프트]\n${lyrics.videoPrompt}\n\n` +
+      `[썸네일 텍스트]\n${lyrics.thumbnailText}\n\n` +
+      `[소셜 자막]\n${lyrics.socialCaption}\n\n` +
+      `[해시태그]\n${lyrics.hashtags.join(" ")}\n`;
     const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -152,6 +174,21 @@ export function PanelB({
 
         {lyrics && lyricsStatus !== "loading" && (
           <div className="animate-fade-in space-y-4">
+            {lyrics.castReason && (
+              <div
+                className="flex items-start gap-2 rounded-xl border px-3 py-2.5"
+                style={{ borderColor: `${persona.accent}55`, background: `${persona.accent}14` }}
+              >
+                <span className="text-lg leading-none">{persona.emoji}</span>
+                <p className="text-xs leading-relaxed text-slate-200">
+                  <b style={{ color: persona.accent }}>오늘의 주인공 · {persona.name}</b>
+                  <span className="text-slate-400"> ({persona.nameEn})</span>
+                  <br />
+                  {lyrics.castReason}
+                </p>
+              </div>
+            )}
+
             <Field label="제목">
               <input
                 value={lyrics.title}
@@ -248,6 +285,15 @@ export function PanelB({
               )}
             </div>
 
+            <Field label="AI 이미지 프롬프트 (9:16, EN)">
+              <textarea
+                value={lyrics.imagePrompt}
+                onChange={(e) => onEdit({ imagePrompt: e.target.value })}
+                rows={3}
+                className={cn(textareaClass, "text-[13px] text-slate-300")}
+              />
+            </Field>
+
             <Field label="영상 생성 프롬프트 (EN)">
               <textarea
                 value={lyrics.videoPrompt}
@@ -265,6 +311,43 @@ export function PanelB({
                 className={textareaClass}
               />
             </Field>
+
+            <Field label="소셜 자막 (캡션)">
+              <textarea
+                value={lyrics.socialCaption}
+                onChange={(e) => onEdit({ socialCaption: e.target.value })}
+                rows={2}
+                className={textareaClass}
+              />
+            </Field>
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-xs font-medium text-slate-400">추천 해시태그</p>
+                {lyrics.hashtags.length > 0 && (
+                  <button
+                    onClick={copyHashtags}
+                    className="rounded-lg border border-white/10 px-2.5 py-1 text-[11px] text-slate-200 transition hover:bg-white/5"
+                  >
+                    {hashCopied ? "✓ 복사됨" : "📋 복사"}
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {lyrics.hashtags.length === 0 ? (
+                  <span className="text-[11px] text-slate-500">생성된 해시태그가 없습니다.</span>
+                ) : (
+                  lyrics.hashtags.map((h) => (
+                    <span
+                      key={h}
+                      className="rounded-full bg-sky-500/15 px-2.5 py-1 text-xs text-sky-200 ring-1 ring-sky-400/30"
+                    >
+                      {h}
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
 
             <Button variant="subtle" size="sm" onClick={downloadScript} className="w-full">
               ⬇ 대본 다운로드 (.txt)

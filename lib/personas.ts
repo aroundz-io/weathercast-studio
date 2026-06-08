@@ -52,27 +52,69 @@ export const PERSONA_MOOD: Record<string, Mood> = {
   thunder: "hiphop", // 힙합·강렬
 };
 
-// 날씨 → 페르소나 자동 분류 (우선순위: 썬더 > 레인 > 클라우디 > 써니)
+// 멤버별 고정 프로필 — SUNO 장르/BPM + 비주얼(외형). '날씨의 아이돌' GEMS 지침 고정값.
+export const IDOL_PROFILE: Record<
+  string,
+  { genre: string; bpm: number; hair: string; look: string }
+> = {
+  sunny: {
+    genre: "Bright K-pop dance, Funk",
+    bpm: 128,
+    hair: "long wavy blonde hair",
+    look: "bright sporty-chic, energetic, warm sunny tones",
+  },
+  rain: {
+    genre: "R&B City Pop, Lo-fi",
+    bpm: 95,
+    hair: "sleek blue-black hair",
+    look: "soft elegant, emotional, cool blue and lavender tones",
+  },
+  cloudy: {
+    genre: "Dreamy Synth-pop, Indie",
+    bpm: 105,
+    hair: "soft ash-grey wavy hair",
+    look: "dreamy ethereal, cozy pastel tones, misty mood",
+  },
+  thunder: {
+    genre: "Powerful Trap, EDM",
+    bpm: 145,
+    hair: "voluminous dark hair with an electric-blue streak",
+    look: "charismatic powerful, bold edgy tones, dramatic",
+  },
+};
+
+export function getIdolProfile(id: string) {
+  return IDOL_PROFILE[id] ?? IDOL_PROFILE.sunny;
+}
+
+// 날씨 → 멤버(페르소나) 자동 분류 — '날씨의 아이돌' GEMS 매칭 로직
+//  썬더: 천둥번개·대설·강풍/태풍·급격한(극한) 기온변화
+//  레인: 비·소나기  ·  클라우디: 흐림·미세먼지/황사  ·  써니: 맑음·폭염·자외선·건조(기본)
 export function autoPersonaId(w: WeatherData): string {
   const c = w.conditionCode;
-  const severe = w.tempHigh >= 33 || w.tempLow <= -12 || w.windSpeed >= 9 || w.precipitation >= 80;
-  if (c === "thunder" || severe) return "thunder";
-  if (c === "rain" || c === "shower" || c === "snow") return "rain";
+  if (c === "thunder" || c === "snow" || w.windSpeed >= 9 || w.tempLow <= -12) return "thunder";
+  if (c === "rain" || c === "shower") return "rain";
   if (c === "cloudy" || w.fineDust === "나쁨" || w.fineDust === "매우나쁨") return "cloudy";
-  return "sunny"; // 맑음 / 구름조금
+  return "sunny"; // 맑음 / 구름조금 / 폭염 / 자외선 / 건조
 }
 
 function castReason(w: WeatherData, personaId: string): string {
   if (personaId === "thunder") {
     if (w.conditionCode === "thunder") return "천둥번개";
-    if (w.tempHigh >= 33) return `폭염 ${w.tempHigh}°`;
-    if (w.precipitation >= 80) return `강수확률 ${w.precipitation}%`;
+    if (w.conditionCode === "snow") return "대설";
     if (w.windSpeed >= 9) return `강풍 ${w.windSpeed}m/s`;
     if (w.tempLow <= -12) return `한파 ${w.tempLow}°`;
-    return "특보급";
+    return "기상특보";
   }
-  if (personaId === "cloudy" && (w.fineDust === "나쁨" || w.fineDust === "매우나쁨"))
-    return `미세먼지 ${w.fineDust}`;
+  if (personaId === "rain") {
+    if (w.conditionCode === "shower") return "소나기";
+    return w.precipitation >= 60 ? `비 (강수 ${w.precipitation}%)` : "비 소식";
+  }
+  if (personaId === "cloudy") {
+    if (w.fineDust === "나쁨" || w.fineDust === "매우나쁨") return `미세먼지 ${w.fineDust}`;
+    return "흐림";
+  }
+  if (w.tempHigh >= 33) return `폭염 ${w.tempHigh}°`; // 써니
   return w.condition;
 }
 

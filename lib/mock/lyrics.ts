@@ -1,4 +1,5 @@
 import { LyricsResult, Mood, Duration, WeatherData, ConditionCode, Persona } from "@/lib/types";
+import { getIdolProfile } from "@/lib/personas";
 
 const MOOD_META: Record<
   Mood,
@@ -73,22 +74,48 @@ export function generateLyrics(weather: WeatherData, mood: Mood, duration: Durat
       : ""
   }자세한 날씨, 노래로 전해드릴게요!`;
 
-  const videoPrompt = `Vertical 9:16 short-form music video, a virtual K-pop weather caster idol singing and dancing, ${CONDITION_EN[weather.conditionCode]}, ${m.en} mood, dynamic camera moves, vivid colors, clean broadcast studio with LED weather map showing ${tempHigh}°C, Korean weather graphics overlay, lip-sync close-ups, high detail, 4k`;
+  const profile = getIdolProfile(persona?.id ?? "sunny");
+  const memberKo = persona?.name ?? m.ko;
+  const memberEn = persona?.nameEn ?? "Sunny";
+
+  // SUNO Style of Music — 멤버 고정 장르 + BPM + 날씨 무드
+  const sunoStyleTags = [...profile.genre.split(", "), `${profile.bpm} BPM`, `${m.en.split(" ")[0]} mood`];
+
+  const castReason = `${memberKo}: 오늘 ${region}은 ${condition}, 낮 최고 ${tempHigh}도! 이런 날엔 내가 딱이야.`;
+
+  const imagePrompt = `${memberEn} from Weather Idols, ${profile.hair}, ${profile.look}, ${CONDITION_EN[weather.conditionCode]} background in ${region}, modest stylish outfit (no midriff exposure), K-pop idol fashion, 8k, hyper-realistic, photorealistic, cinematic lighting, 9:16 aspect ratio`;
+
+  const videoPrompt = `${memberEn} from Weather Idols, ${profile.hair}, singing and dancing, ${CONDITION_EN[weather.conditionCode]} background in ${region}, dynamic camera moves, lip-sync close-ups, modest K-pop idol fashion, 8k, hyper-realistic, photorealistic, cinematic lighting, 9:16 aspect ratio`;
 
   const thumbnailText = `${region} ${condition}\n${tempHigh}° / ${tempLow}°`;
 
-  const thumbnailPrompt = `YouTube Shorts thumbnail, bold Korean title "${region} ${condition}", cute virtual weather idol character, ${CONDITION_EN[weather.conditionCode]} background, ${m.en} color palette, big readable typography, high contrast, eye-catching`;
+  const socialCaption = `${conditionEmoji} ${region} ${forecastLabel} — ${memberKo}의 날씨송! ${
+    precipitation >= 50 ? "퇴근길 우산 꼭 챙기세요 ☔" : "오늘도 좋은 하루 보내세요 ✨"
+  }`;
 
-  const title = `${region} ${condition} 날씨송 · ${persona ? persona.name : m.ko}`;
+  const hashtags = [
+    "#날씨의아이돌",
+    "#오늘의날씨",
+    "#WeatherIdols",
+    "#KPOP",
+    `#${memberEn}`,
+    `#${region}날씨`,
+  ];
+
+  const title = `${region} ${condition} 날씨송 · ${memberKo}`;
 
   return {
+    castReason,
     title,
     lyrics,
     narration,
-    sunoStyleTags: m.suno,
+    sunoStyleTags,
+    imagePrompt,
     videoPrompt,
     thumbnailText,
-    thumbnailPrompt,
+    thumbnailPrompt: imagePrompt,
+    socialCaption,
+    hashtags,
     source: "mock",
   };
 }
