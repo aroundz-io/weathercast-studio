@@ -46,3 +46,10 @@ export function forecastLabelFromDate(dateStr: string): string {
   const rel = relativeDay(dateStr);
   return rel ? `${rel} 날씨` : `${dateDisplay(dateStr)} 날씨`;
 }
+
+// 날씨송 제목 고정 포맷: "2026년 6월 9일 화요일 날씨_Cloudy" (년 월일 요일 날씨_캐릭터영문명)
+export function songTitle(dateStr: string, characterNameEn: string): string {
+  const p = dateStr.split("-");
+  if (p.length !== 3) return `${dateStr} 날씨_${characterNameEn}`;
+  return `${p[0]}년 ${Number(p[1])}월 ${Number(p[2])}일 ${weekdayKo(dateStr)}요일 날씨_${characterNameEn}`;
+}

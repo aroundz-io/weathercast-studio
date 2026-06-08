@@ -1,6 +1,7 @@
 import { LyricsResult, WeatherData, Mood, Duration, Persona } from "@/lib/types";
 import { moodLabel } from "@/lib/mock/lyrics";
 import { getIdolProfile } from "@/lib/personas";
+import { songTitle } from "@/lib/weather/dates";
 
 // ── Google Gemini 가사·프롬프트 실연동 — '날씨의 아이돌' GEMS 이식 ──────────────
 // 키발급: https://aistudio.google.com/apikey
@@ -42,7 +43,6 @@ const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
     castReason: { type: "STRING" }, // Step1: 선정 이유 (멤버 말투)
-    title: { type: "STRING" },
     sunoStyleTags: { type: "ARRAY", items: { type: "STRING" } }, // Step2: Style of Music
     lyrics: { type: "STRING" }, // Step2: 가사
     narration: { type: "STRING" },
@@ -54,7 +54,6 @@ const RESPONSE_SCHEMA = {
   },
   required: [
     "castReason",
-    "title",
     "sunoStyleTags",
     "lyrics",
     "narration",
@@ -97,7 +96,6 @@ ${bullets}
 
 [작성 지침 — 아래 JSON 필드를 모두 채우세요]
 - castReason: 왜 오늘 ${memberKo}가 주인공인지 ${memberKo}의 말투로 1~2문장(한국어, 위 실제 날씨 근거 언급).
-- title: 곡 제목(한국어).
 - sunoStyleTags: SUNO 'Style of Music'용 영어 키워드 배열. 반드시 "${profile.genre}"의 키워드와 "${profile.bpm} BPM"을 포함하고, 오늘 날씨 무드 키워드를 1~2개 더해 총 4~6개.
 - lyrics: [Intro]/[Verse]/[Chorus]/[Outro] 구조의 한국어 가사. 위 실제 기온·하늘상태·강수확률을 구체적으로 언급하고, 코디/준비물 생활팁을 자연스럽게 포함. 후렴에 'Weather Idols' 또는 멤버명을 넣어도 좋음. ${memberKo}의 말투 유지. 각 줄은 줄바꿈(\\n)으로 구분.
 - narration: 방송 기상캐스터 멘트(한국어 2~3문장).
@@ -161,12 +159,12 @@ export async function generateLyricsGemini(
   } catch {
     throw new Error("Gemini JSON 파싱 실패");
   }
-  if (!parsed.title || !parsed.lyrics) throw new Error("Gemini 응답 형식 불완전");
+  if (!parsed.lyrics) throw new Error("Gemini 응답 형식 불완전");
 
   const imagePrompt = parsed.imagePrompt ?? "";
   return {
     castReason: parsed.castReason ?? "",
-    title: parsed.title,
+    title: songTitle(weather.date, persona?.nameEn ?? "Sunny"),
     lyrics: parsed.lyrics,
     narration: parsed.narration ?? "",
     sunoStyleTags: Array.isArray(parsed.sunoStyleTags) ? parsed.sunoStyleTags : [],

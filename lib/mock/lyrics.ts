@@ -1,5 +1,6 @@
 import { LyricsResult, Mood, Duration, WeatherData, ConditionCode, Persona } from "@/lib/types";
 import { getIdolProfile } from "@/lib/personas";
+import { songTitle } from "@/lib/weather/dates";
 
 const MOOD_META: Record<
   Mood,
@@ -102,7 +103,7 @@ export function generateLyrics(weather: WeatherData, mood: Mood, duration: Durat
     `#${region}날씨`,
   ];
 
-  const title = `${region} ${condition} 날씨송 · ${memberKo}`;
+  const title = songTitle(weather.date, memberEn);
 
   return {
     castReason,
