@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LyricsResult, WeatherData } from "@/lib/types";
 import {
   Button,
@@ -27,6 +27,21 @@ export function PanelB({
   onEdit: (patch: Partial<LyricsResult>) => void;
 }) {
   const [tagInput, setTagInput] = useState("");
+  const [styleView, setStyleView] = useState<"tags" | "prompt">("tags");
+  const [promptDraft, setPromptDraft] = useState("");
+  const [copied, setCopied] = useState(false);
+  // 내가 프롬프트를 파싱해 올린 변경인지 구분하는 시그니처 (외부 변경만 초안 재동기화)
+  const lastSyncedRef = useRef("");
+
+  // 외부에서 태그가 바뀌면(재생성·칩 편집) 프롬프트 초안을 다시 맞춤. 직접 타이핑한 변경은 건너뜀.
+  useEffect(() => {
+    const tags = lyrics?.sunoStyleTags ?? [];
+    const key = tags.join("|");
+    if (key !== lastSyncedRef.current) {
+      setPromptDraft(tags.join(", "));
+      lastSyncedRef.current = key;
+    }
+  }, [lyrics?.sunoStyleTags]);
 
   function addTag() {
     const t = tagInput.trim();
@@ -40,6 +55,32 @@ export function PanelB({
   function removeTag(tag: string) {
     if (!lyrics) return;
     onEdit({ sunoStyleTags: lyrics.sunoStyleTags.filter((t) => t !== tag) });
+  }
+
+  // 프롬프트(한 줄 텍스트) 편집 → 쉼표로 분리해 태그 배열로 동기화
+  function onStylePromptChange(v: string) {
+    if (!lyrics) return;
+    setPromptDraft(v);
+    const tags = Array.from(
+      new Set(
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      )
+    );
+    lastSyncedRef.current = tags.join("|"); // 내 변경 표시 → useEffect가 초안을 덮어쓰지 않음
+    onEdit({ sunoStyleTags: tags });
+  }
+
+  async function copyStylePrompt() {
+    try {
+      await navigator.clipboard.writeText(promptDraft);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* 클립보드 권한 없을 때 무시 */
+    }
   }
 
   function downloadScript() {
@@ -138,31 +179,73 @@ export function PanelB({
             </Field>
 
             <div>
-              <p className="mb-1.5 text-xs font-medium text-slate-400">Suno 스타일 태그</p>
-              <div className="flex flex-wrap gap-1.5">
-                {lyrics.sunoStyleTags.map((t) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1 rounded-full bg-indigo-500/15 px-2.5 py-1 text-xs text-indigo-200 ring-1 ring-indigo-400/30"
-                  >
-                    {t}
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-xs font-medium text-slate-400">Suno 스타일</p>
+                <div className="flex overflow-hidden rounded-lg border border-white/10 text-[10px]">
+                  {(["tags", "prompt"] as const).map((v) => (
                     <button
-                      onClick={() => removeTag(t)}
-                      className="text-indigo-300/70 hover:text-white"
-                      aria-label="삭제"
+                      key={v}
+                      onClick={() => setStyleView(v)}
+                      className={cn(
+                        "px-2 py-0.5 font-medium transition",
+                        styleView === v
+                          ? "bg-indigo-500/30 text-indigo-200"
+                          : "text-slate-400 hover:bg-white/5"
+                      )}
                     >
-                      ×
+                      {v === "tags" ? "태그" : "프롬프트"}
                     </button>
-                  </span>
-                ))}
-                <input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-                  placeholder="+ 태그 추가"
-                  className="w-24 rounded-full border border-white/10 bg-ink-900/60 px-2.5 py-1 text-xs text-slate-200 outline-none focus:border-sky-400/50"
-                />
+                  ))}
+                </div>
               </div>
+
+              {styleView === "tags" ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {lyrics.sunoStyleTags.map((t) => (
+                    <span
+                      key={t}
+                      className="inline-flex items-center gap-1 rounded-full bg-indigo-500/15 px-2.5 py-1 text-xs text-indigo-200 ring-1 ring-indigo-400/30"
+                    >
+                      {t}
+                      <button
+                        onClick={() => removeTag(t)}
+                        className="text-indigo-300/70 hover:text-white"
+                        aria-label="삭제"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                    placeholder="+ 태그 추가"
+                    className="w-24 rounded-full border border-white/10 bg-ink-900/60 px-2.5 py-1 text-xs text-slate-200 outline-none focus:border-sky-400/50"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <textarea
+                    value={promptDraft}
+                    onChange={(e) => onStylePromptChange(e.target.value)}
+                    rows={3}
+                    placeholder="예: Upbeat K-pop, bright synth, female vocal, 128 BPM"
+                    className={cn(textareaClass, "text-[13px]")}
+                  />
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-slate-500">
+                      쉼표로 구분 · Suno의 Style 칸에 붙여넣기
+                    </span>
+                    <button
+                      onClick={copyStylePrompt}
+                      className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1 text-[11px] text-slate-200 transition hover:bg-white/5"
+                    >
+                      {copied ? "✓ 복사됨" : "📋 프롬프트 복사"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <Field label="영상 생성 프롬프트 (EN)">
